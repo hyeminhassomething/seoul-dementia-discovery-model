@@ -1,0 +1,38 @@
+# 가상환경
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# OS
+.DS_Store
+Thumbs.db
+
+# 캐시·시스템
+cache/
+.ipynb_checkpoints/
+*.log
+
+# 환경변수·시크릿
+.env
+.env.local
+*_api_key*
+.kakao_key
+.naver_key
+
+# ─────────────── 데이터 ───────────────
+# 원본 데이터: 모두 공공 데이터셋이므로 README의 다운로드 안내 참고하여 직접 받기
+data/raw/
+
+# 카카오 지오코딩 캐시 (개인 API 응답 포함)
+data/interim/kakao_geocode_cache.json
+
+# 너무 큰 중간 산출물 (50MB+) — 코드 실행하면 재생성됨
+data/interim/seoul_zoning_wgs84.geojson
+data/interim/road_network_edges.csv
+data/interim/road_network_nodes.csv
+
+# ─────────────── 결과물 (commit 함) ───────────────
+# data/processed/ 는 commit (팀원이 바로 모델 사용 가능하도록)
+# 단, 매우 큰 산출물은 README에서 코드로 재생성하라고 안내
