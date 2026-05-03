@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>치매 노인 실종 발견 확률 모델 — 지도</title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, "Apple SD Gothic Neo", sans-serif; margin: 0; padding: 24px; background: #f8f9fa; }
+  h1 { color: #2c3e50; }
+  .container { max-width: 1100px; margin: 0 auto; }
+  .card { background: white; padding: 24px; margin-bottom: 16px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+  .card h2 { margin-top: 0; color: #34495e; }
+  .map-container { width: 100%; height: 700px; border: 1px solid #e0e0e0; border-radius: 4px; overflow: hidden; }
+  iframe { width: 100%; height: 100%; border: none; display: block; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin: 16px 0; }
+  .stat { background: #ecf0f1; padding: 12px; border-radius: 4px; text-align: center; }
+  .stat-num { font-size: 24px; font-weight: bold; color: #e74c3c; }
+  .stat-lbl { font-size: 12px; color: #7f8c8d; margin-top: 4px; }
+  a { color: #3498db; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { background: #f1f1f1; padding: 2px 6px; border-radius: 3px; font-size: 90%; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="card">
+<h1>🧠 치매 노인 실종 발견 확률 모델</h1>
+<p>서울시 50m 격자 단위 7-feature 가중합 모델 + 보수적 임계치 기반 우선 수색 격자 추천.</p>
+<p><a href="https://github.com/hyeminhassomething/seoul-dementia-discovery-model">📁 GitHub repo</a></p>
+
+<div class="stats">
+  <div class="stat"><div class="stat-num">121,051</div><div class="stat-lbl">분석 격자 (50m × 50m)</div></div>
+  <div class="stat"><div class="stat-num">1,292</div><div class="stat-lbl">노인복지시설</div></div>
+  <div class="stat"><div class="stat-num">9,535</div><div class="stat-lbl">CCTV 점</div></div>
+  <div class="stat"><div class="stat-num">7,652</div><div class="stat-lbl">휴식지 (공원·경로당·쉼터)</div></div>
+  <div class="stat"><div class="stat-num">135K</div><div class="stat-lbl">교차로 (OSM)</div></div>
+</div>
+</div>
+
+<div class="card">
+<h2>🗺️ 서울 전체 발견확률 히트맵</h2>
+<p>붉은색에 가까울수록 발견확률 높은 격자. 종로·동대문·은평 일대 골목 미로 지역이 가장 높음.</p>
+<div class="map-container">
+  <iframe src="data/processed/seoul_discovery_heatmap.html" loading="lazy"></iframe>
+</div>
+<p style="margin-top:8px;font-size:12px;color:#7f8c8d;">로딩 안 되면 → <a href="data/processed/seoul_discovery_heatmap.html" target="_blank">새 탭에서 열기</a></p>
+</div>
+
+<div class="card">
+<h2>📍 광화문 6시간 시나리오 데모</h2>
+<p>광화문 부근에서 노인 실종 신고, 6시간 경과 → 보수적 임계치 2.5km 반경 안에서 발견확률 상위 10개 격자.</p>
+<p>결과: 1~10위 모두 <strong>종로구 인사동·익선동 일대</strong> (발견확률 0.68~0.69) — 미로 골목이 가장 큰 신호.</p>
+<div class="map-container">
+  <iframe src="data/processed/incident_demo_map.html" loading="lazy"></iframe>
+</div>
+<p style="margin-top:8px;font-size:12px;color:#7f8c8d;">로딩 안 되면 → <a href="data/processed/incident_demo_map.html" target="_blank">새 탭에서 열기</a></p>
+</div>
+
+<div class="card">
+<h2>📦 사용법 (팀원용)</h2>
+<p><strong>지도만 보고 싶으면:</strong> 위 두 지도 그대로 보면 끝.</p>
+<p><strong>로컬에서 코드 돌리고 싶으면:</strong></p>
+<pre style="background:#2c3e50;color:#ecf0f1;padding:12px;border-radius:4px;overflow-x:auto;"><code>git clone https://github.com/hyeminhassomething/seoul-dementia-discovery-model.git
+cd seoul-dementia-discovery-model
+python3 -m venv .venv
+source .venv/bin/activate
+pip install pandas openpyxl numpy geopandas shapely pyproj osmnx networkx folium
+
+# 모델 산출물은 data/processed/ 에 이미 있어서 그대로 사용 가능
+# 지도 HTML 직접 열기:
+open data/processed/seoul_discovery_heatmap.html</code></pre>
+</div>
+
+</div>
+</body>
+</html>
