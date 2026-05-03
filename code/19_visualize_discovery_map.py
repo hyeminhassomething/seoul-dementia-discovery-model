@@ -192,9 +192,24 @@ def make_incident_demo() -> Path:
     return out
 
 
+def fix_html_height(path: Path) -> None:
+    """folium 저장본의 body를 viewport 100vh로 강제 — 흰화면 버그 방지."""
+    html = path.read_text(encoding="utf-8")
+    fix_css = """<style>
+html, body { width: 100%; height: 100vh !important; min-height: 100vh !important; margin: 0; padding: 0; }
+.folium-map { width: 100% !important; height: 100vh !important; min-height: 600px !important; position: absolute !important; top: 0; left: 0; }
+</style>
+</head>"""
+    if "100vh" not in html:
+        html = html.replace("</head>", fix_css, 1)
+        path.write_text(html, encoding="utf-8")
+
+
 def main() -> None:
     p1 = make_seoul_heatmap()
+    fix_html_height(p1)
     p2 = make_incident_demo()
+    fix_html_height(p2)
     print(f"\n✅ Open in browser:")
     print(f"   open {p1}")
     print(f"   open {p2}")
