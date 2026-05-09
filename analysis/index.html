@@ -101,7 +101,8 @@
   <div class="stat"><div class="stat-num">14.17</div><div class="stat-lbl">종로 발생률 (per 10k, 1위)</div></div>
 </div>
 <p style="font-size:12px;color:#7f8c8d;margin-top:12px;">
-※ HDBSCAN 노이즈(-1) 제외 후 분석 사용 격자: 24,824개 · 군집별 환경 프로필 분석에 활용
+※ HDBSCAN 노이즈(-1) 제외 후 분석 사용 격자: 24,824개 · 군집별 환경 프로필 분석에 활용<br>
+※ LISA 4-Cluster (전체 분포): HH 46,638 · LL 93,606 · LH 4,045 · HL 1,163 (geometry 폴리곤 라벨 기준)
 </p>
 </div>
 
@@ -162,7 +163,46 @@
 <p>HH/HL 격자 + TOP 5 행정동 표시. 인터랙티브에서 호버 시 격자별 상세 정보.</p>
 
 <div class="card">
-  <h3>3-1. 정적 지도 (PPT 슬라이드용)</h3>
+  <h3>3-1. ⭐ LISA 4-Cluster 전체 지도 (HH / HL / LH / LL) — 차성준 제작</h3>
+  <p style="font-size:12px;color:#7f8c8d;">geopandas geometry 기반 폴리곤 시각화. 줌·팬·클러스터별 토글 가능.</p>
+  <iframe src="../data/processed/report_viz/cluster/LISA_full_4cluster_map.html" height="780"></iframe>
+</div>
+
+<div class="card" style="background:#fff8e1;border-left:4px solid #f1c40f;">
+  <h3>📖 4-Cluster 해석 — 실종/발견 시나리오</h3>
+  <table style="width:100%; border-collapse: collapse; font-size:13px; margin-top:8px;">
+  <thead><tr style="background:#34495e; color:white;">
+    <th style="padding:8px;">유형</th><th>의미</th><th>실종/발견 시사점</th><th>정책 함의</th>
+  </tr></thead>
+  <tbody>
+  <tr><td style="padding:8px;text-align:center;"><span class="pill pill-red">HH</span></td>
+    <td>위험도 ↑ + 주변도 ↑</td>
+    <td><b>치매 노인 실종 발생 多</b> — 광역 핫스팟</td>
+    <td>면(Area) 단위 인프라 정비</td></tr>
+  <tr style="background:#fafbfc;"><td style="padding:8px;text-align:center;"><span class="pill pill-yellow">HL</span></td>
+    <td>위험도 ↑인데 주변은 낮음</td>
+    <td><b>사각지대</b> — LL에서 실종된 노인이 이쪽으로 흘러올 가능성, 발견 거점</td>
+    <td>점(Point) 단위 즉각 조치 (스마트 횡단보도, 비상벨)</td></tr>
+  <tr><td style="padding:8px;text-align:center;"><span class="pill pill-blue">LH</span></td>
+    <td>위험도 낮음인데 주변은 높음</td>
+    <td>HH 클러스터에 둘러싸인 안전 섬 — 대피 경로 후보</td>
+    <td>대피 동선·안내 표지로 활용</td></tr>
+  <tr style="background:#fafbfc;"><td style="padding:8px;text-align:center;"><span class="pill">LL</span></td>
+    <td>위험도 ↓ + 주변도 ↓</td>
+    <td>일반 안전 지역. 단, <b>여기서 실종이 발생하면 인접 HL로 이동·발견 가능성</b></td>
+    <td>저우선 (모니터링만)</td></tr>
+  </tbody>
+  </table>
+  <p style="font-size:13px;color:#5a6c7d;margin-top:14px;line-height:1.7;">
+  <b>핵심 가설 (차성준 제안):</b><br>
+  ① <b>HH 점 밀도 높은 지역 = 실종 발생 多</b>. 광역 위험구역으로 우선 정비.<br>
+  ② <b>LL에서 실종이 발생하면 인접한 HL 격자에서 발견 확률 높음.</b> HL을 "사각지대 + 발견 거점" 이중 의미로 해석 가능.<br>
+  ③ HL 격자 1,092개는 핀셋 정책으로 최대 효과 (작은 비용으로 다수 LL 격자 커버).
+  </p>
+</div>
+
+<div class="card">
+  <h3>3-2. 정적 타겟 지도 (PPT 슬라이드용)</h3>
   <img src="../data/processed/report_viz/cluster/06_final_target_map.png" alt="최종 타겟 지도">
 </div>
 
