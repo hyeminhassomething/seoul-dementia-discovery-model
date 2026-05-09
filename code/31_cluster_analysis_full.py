@@ -82,8 +82,25 @@ def main():
     print("[load]", DATA.name)
     df = pd.read_excel(DATA, sheet_name="Sheet1")
     df_valid = df[df["HDBSCAN_Cluster"] != -1].copy()
-    print(f"  total: {len(df):,}, valid (cluster ≠ -1): {len(df_valid):,}")
-    print(f"  LISA: {df_valid['LISA_Cluster'].value_counts().to_dict()}")
+
+    # 진짜 분석 격자 수 (final_data.csv 전체)
+    full_grid_path = PROJECT_ROOT / "data/processed/final_data.csv"
+    if full_grid_path.exists():
+        n_total_full = sum(1 for _ in open(full_grid_path)) - 1
+    else:
+        n_total_full = 250450  # known fallback
+
+    n_total_hhhl = len(df)
+    n_hh_full = (df["LISA_Cluster"] == "HH").sum()
+    n_hl_full = (df["LISA_Cluster"] == "HL").sum()
+    n_valid = len(df_valid)
+    n_clusters = df_valid["HDBSCAN_Cluster"].nunique()
+
+    print(f"  전체 분석 격자 (final_data): {n_total_full:,}")
+    print(f"  HH/HL 격자 (이 파일): {n_total_hhhl:,}")
+    print(f"  - HH: {n_hh_full:,}, HL: {n_hl_full:,}")
+    print(f"  HDBSCAN noise(-1) 제외 valid: {n_valid:,}")
+    print(f"  유효 군집: {n_clusters}")
 
     # ─────────── 01. 파이프라인 깔때기 ───────────
     print("\n[01] pipeline funnel")
@@ -92,16 +109,16 @@ def main():
     ax.set_ylim(0, 10)
     ax.axis("off")
 
-    n0 = 250450
-    n1 = len(df)
-    n2 = len(df_valid)
-    n3 = (df_valid["LISA_Cluster"] == "HH").sum() + (df_valid["LISA_Cluster"] == "HL").sum()
+    n0 = n_total_full              # 250,450
+    n1 = n_total_hhhl              # 53,390 (사실상 동일)
+    n3 = n_hh_full + n_hl_full     # 53,390 (HH+HL)
+    n2 = n_valid                   # 24,824 (HDBSCAN -1 제외)
 
     stages = [
-        (8.5, "#bdc3c7", f"전체 격자\n{n0:,}개", "Step 0\n50m × 50m 격자"),
-        (7.0, "#95a5a6", f"위험도 평가\n{n1:,}개", "Step 1\nXGBoost · risk_score"),
-        (5.5, "#e67e22", f"공간 핫스팟\nLISA: HH/HL\n{n3:,}개", "Step 2\nLISA Moran's I"),
-        (4.0, "#c0392b", f"맞춤 타겟\nHDBSCAN 군집\n{n2:,}개", "Step 3\n특성 분류"),
+        (8.5, "#bdc3c7", f"전체 격자\n{n0:,}개", "Step 0\n50m × 50m 격자 (서울 전체)"),
+        (7.0, "#95a5a6", f"위험도 평가\n{n0:,}개", "Step 1\nXGBoost · risk_score"),
+        (5.5, "#e67e22", f"공간 핫스팟\nHH {n_hh_full:,} + HL {n_hl_full:,}\n= {n3:,}개", "Step 2\nLISA Moran's I"),
+        (4.0, "#c0392b", f"환경 분류\n유효 격자 {n2:,}개\n({n_clusters}개 군집)", "Step 3\nHDBSCAN"),
         (2.5, "#7d2c1e", "정책 개입\nTOP 15 행정동", "Step 4\n실행 계획"),
     ]
     for i, (y, color, label, desc) in enumerate(stages):
@@ -218,19 +235,32 @@ def main():
     plt.savefig(OUT / "04_top_clusters_radar.png", bbox_inches="tight")
     plt.close()
 
-    # ─────────── 05. TOP 15 행정동 ───────────
-    print("[05] top 15 dong")
-    region = df_valid.groupby(
-        ["gu_name", "ADM_NM", "LISA_Cluster", "HDBSCAN_Cluster"]
-    ).size().reset_index(name="격자수")
-    top15 = region.sort_values("격자수", ascending=False).head(15).copy()
-    top15["군집_별명"] = top15["HDBSCAN_Cluster"].map(cluster_names).fillna("기타")
+    # ─────────── 05. TOP 15 행정동 (HH 전체 기준 — 진짜 우선순위) ───────────
+    print("[05] top 15 dong (HH 전체 기준)")
+    hh_all = df[df["LISA_Cluster"] == "HH"].copy()
+    region = hh_all.groupby(["gu_name", "ADM_NM"]).size().reset_index(name="HH_격자수")
+    top15 = region.sort_values("HH_격자수", ascending=False).head(15).copy()
+    # 동별 dominant 군집 (노이즈 -1 제외 후 가장 많은 것)
+    dom = (
+        df_valid.groupby(["gu_name", "ADM_NM", "HDBSCAN_Cluster"]).size()
+        .reset_index(name="n")
+        .sort_values("n", ascending=False)
+        .drop_duplicates(["gu_name", "ADM_NM"], keep="first")
+    )
+    dom["군집_별명"] = dom["HDBSCAN_Cluster"].map(cluster_names).fillna("기타")
+    top15 = top15.merge(
+        dom[["gu_name", "ADM_NM", "HDBSCAN_Cluster", "군집_별명"]],
+        on=["gu_name", "ADM_NM"], how="left",
+    )
+    top15["LISA_Cluster"] = "HH"
     top15.to_csv(OUT / "08_top15_dong_data.csv", index=False, encoding="utf-8-sig")
 
     fig, ax = plt.subplots(figsize=(14, 8))
     ax.axis("off")
     table_data = top15[["gu_name", "ADM_NM", "LISA_Cluster",
-                        "HDBSCAN_Cluster", "군집_별명", "격자수"]]
+                        "HDBSCAN_Cluster", "군집_별명", "HH_격자수"]]
+    table_data.columns = ["gu_name", "ADM_NM", "LISA_Cluster",
+                          "HDBSCAN_Cluster", "군집_별명", "격자수"]
     cell_colors = []
     for _, row in table_data.iterrows():
         c = "#fadbd8" if row["LISA_Cluster"] == "HH" else "#fcf3cf"
@@ -247,7 +277,7 @@ def main():
         cell = tbl[0, i]
         cell.set_facecolor("#34495e")
         cell.set_text_props(color="white", fontweight="bold")
-    ax.set_title("정책 개입 최우선 행정동 TOP 15 — 격자 수 기준",
+    ax.set_title("정책 개입 최우선 행정동 TOP 15 — HH 격자 수 기준",
                  fontsize=14, fontweight="bold", pad=20)
     plt.tight_layout()
     plt.savefig(OUT / "05_top15_dong_table.png", bbox_inches="tight")
@@ -367,11 +397,11 @@ def main():
 </header>
 <div class="container">
   <div class="stats">
-    <div class="stat"><div class="stat-num">53,390</div><div class="stat-lbl">분석 격자</div></div>
-    <div class="stat"><div class="stat-num">52,298</div><div class="stat-lbl">HH (광역 위험)</div></div>
-    <div class="stat"><div class="stat-num">1,092</div><div class="stat-lbl">HL (사각지대)</div></div>
-    <div class="stat"><div class="stat-num">38</div><div class="stat-lbl">HDBSCAN 군집</div></div>
-    <div class="stat"><div class="stat-num">12</div><div class="stat-lbl">유효 상위 군집</div></div>
+    <div class="stat"><div class="stat-num">{n0:,}</div><div class="stat-lbl">전체 분석 격자 (50m)</div></div>
+    <div class="stat"><div class="stat-num">{n_hh_full:,}</div><div class="stat-lbl">HH (광역 위험 핫스팟)</div></div>
+    <div class="stat"><div class="stat-num">{n_hl_full:,}</div><div class="stat-lbl">HL (사각지대)</div></div>
+    <div class="stat"><div class="stat-num">{n_clusters}</div><div class="stat-lbl">HDBSCAN 유효 군집</div></div>
+    <div class="stat"><div class="stat-num">{n_valid:,}</div><div class="stat-lbl">노이즈 제외 격자</div></div>
   </div>
   <div class="card"><h2>📐 1. 분석 파이프라인</h2>
     <img src="01_pipeline_funnel.png"></div>
@@ -393,15 +423,18 @@ def main():
 
     print(f"\n✅ 모든 출력: {OUT.relative_to(PROJECT_ROOT)}/")
     print(f"   대시보드: open {OUT / 'HH_HL_cluster_dashboard.html'}")
-    print(f"\n📊 분석 요약:")
-    print(f"   HH: {(df_valid['LISA_Cluster']=='HH').sum():,}, HL: {(df_valid['LISA_Cluster']=='HL').sum():,}")
+    print(f"\n📊 분석 요약 (정확한 숫자):")
+    print(f"   전체 격자: {n_total_full:,}")
+    print(f"   HH 전체: {n_hh_full:,}, HL 전체: {n_hl_full:,}")
+    print(f"   HDBSCAN 노이즈 제외 valid: {n_valid:,}")
+    print(f"   유효 군집: {n_clusters}개")
     print(f"   상위 군집 별명:")
     for c, n in list(cluster_names.items())[:6]:
         print(f"     군집 {c} ({cluster_sizes[c]:,}개) → {n}")
     print(f"\n   TOP 5 정책 우선 동:")
     for _, r in top15.head(5).iterrows():
         print(f"     {r['gu_name']} {r['ADM_NM']} ({r['LISA_Cluster']}) "
-              f"군집 {r['HDBSCAN_Cluster']}: {r['군집_별명']} — {r['격자수']}개")
+              f"군집 {r['HDBSCAN_Cluster']}: {r['군집_별명']} — {r['HH_격자수']}개")
 
 
 if __name__ == "__main__":
