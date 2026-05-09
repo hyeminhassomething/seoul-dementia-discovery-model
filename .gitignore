@@ -36,3 +36,5 @@ data/interim/road_network_nodes.csv
 # ─────────────── 결과물 (commit 함) ───────────────
 # data/processed/ 는 commit (팀원이 바로 모델 사용 가능하도록)
 # 단, 매우 큰 산출물은 README에서 코드로 재생성하라고 안내
+data/processed/final_data.csv
+data/processed/cluster_labeled_data.xlsx

@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>치매 노인 실종 분석 v2 — LISA + HDBSCAN + 정책 우선순위</title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, "Apple SD Gothic Neo", sans-serif;
+         margin: 0; background: #f4f5f7; color: #2c3e50; }
+  header { background: linear-gradient(135deg, #c0392b 0%, #7d2c1e 100%);
+           color: white; padding: 40px 28px; }
+  header h1 { margin: 0 0 8px; font-size: 30px; }
+  header p { margin: 0; opacity: 0.92; font-size: 15px; }
+  header .badge { display: inline-block; padding: 4px 10px; background: rgba(255,255,255,0.18);
+                  border-radius: 12px; font-size: 11px; margin-top: 8px; }
+  .container { max-width: 1300px; margin: 0 auto; padding: 24px; }
+  .nav { background: white; padding: 14px 20px; border-radius: 8px;
+         margin-bottom: 18px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
+  .nav a { display: inline-block; margin-right: 18px; color: #c0392b;
+           text-decoration: none; font-size: 13px; font-weight: 500; }
+  .nav a:hover { text-decoration: underline; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+           gap: 14px; margin-bottom: 22px; }
+  .stat { background: white; padding: 18px; border-radius: 10px;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.08); text-align: center; }
+  .stat-num { font-size: 30px; font-weight: bold; color: #c0392b; }
+  .stat-lbl { font-size: 12px; color: #7f8c8d; margin-top: 6px; }
+  .section { background: white; padding: 24px; margin-bottom: 18px;
+             border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
+  .section h2 { margin: 0 0 8px; color: #34495e; font-size: 20px;
+                border-left: 4px solid #c0392b; padding-left: 10px; }
+  .section h3 { margin: 20px 0 8px; color: #34495e; font-size: 15px; }
+  .section p { color: #5a6c7d; font-size: 13px; line-height: 1.6; margin: 8px 0; }
+  .card { padding: 16px; margin-bottom: 16px;
+          border: 1px solid #e8ecef; border-radius: 8px; background: #fafbfc; }
+  .card h3 { margin: 0 0 8px; color: #2c3e50; font-size: 15px; }
+  .card p { color: #5a6c7d; font-size: 12px; }
+  .card img { width: 100%; border-radius: 6px; margin-top: 8px; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 1000px) { .row { grid-template-columns: 1fr; } }
+  iframe { width: 100%; border: 1px solid #e8ecef; border-radius: 6px; }
+  .pill { display: inline-block; padding: 3px 10px; border-radius: 12px;
+          background: #ecf0f1; font-size: 11px; margin-right: 4px; color: #34495e; }
+  .pill-red { background: #fadbd8; color: #c0392b; }
+  .pill-yellow { background: #fcf3cf; color: #b7950b; }
+  .pill-blue { background: #d6eaf8; color: #2874a6; }
+  footer { text-align: center; padding: 28px; color: #95a5a6; font-size: 12px; }
+  footer a { color: #3498db; text-decoration: none; }
+  .toc { background: #fff8e1; padding: 16px 20px; border-radius: 8px;
+         margin-bottom: 18px; border-left: 4px solid #f1c40f; }
+  .toc h3 { margin: 0 0 8px; color: #b7950b; font-size: 14px; }
+  .toc ol { margin: 0; padding-left: 20px; }
+  .toc li { font-size: 13px; color: #5a6c7d; line-height: 1.7; }
+  .toc a { color: #c0392b; text-decoration: none; font-weight: 500; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🎯 치매 노인 실종 분석 — Phase 2</h1>
+  <p>LISA 공간 자기상관 + HDBSCAN 환경 분류 → 정책 개입 우선순위 도출</p>
+  <span class="badge">서울시 데이터 분석 경진대회 · 2026</span>
+  <span class="badge">50m 격자 단위 · 53,390개 격자</span>
+</header>
+
+<div class="container">
+
+<div class="nav">
+  <a href="#stats">📊 핵심 지표</a>
+  <a href="#pipeline">📐 분석 파이프라인</a>
+  <a href="#cluster">🧬 클러스터 분석</a>
+  <a href="#map">🗺️ 위험 지도</a>
+  <a href="#policy">🚨 정책 우선순위</a>
+  <a href="#case">🔍 종로구 Case</a>
+  <a href="#raw-eda">📈 자치구 EDA</a>
+  <a href="../index.html" style="color:#7f8c8d;">← v1 대시보드</a>
+</div>
+
+<div class="toc">
+  <h3>📚 페이지 구성</h3>
+  <ol>
+    <li><a href="#pipeline">분석 파이프라인</a> — 4단계 깔때기</li>
+    <li><a href="#cluster">LISA + HDBSCAN 클러스터 분석</a> ⭐ — 핵심</li>
+    <li><a href="#map">위험 격자 지도</a> — 인터랙티브</li>
+    <li><a href="#policy">정책 우선순위 TOP 15</a> ⭐ — 실행 계획</li>
+    <li><a href="#case">종로구 Case Study</a> — 도심 4구 비교</li>
+    <li><a href="#raw-eda">자치구별 EDA</a> — 발생률·위험도 비교</li>
+  </ol>
+</div>
+
+<!-- ─────────── 핵심 지표 ─────────── -->
+<div id="stats" class="section">
+<h2>📊 핵심 지표</h2>
+<div class="stats">
+  <div class="stat"><div class="stat-num">53,390</div><div class="stat-lbl">분석 격자 (50m × 50m)</div></div>
+  <div class="stat"><div class="stat-num">23,976</div><div class="stat-lbl">HH (광역 위험 핫스팟)</div></div>
+  <div class="stat"><div class="stat-num">848</div><div class="stat-lbl">HL (사각지대)</div></div>
+  <div class="stat"><div class="stat-num">38</div><div class="stat-lbl">HDBSCAN 군집</div></div>
+  <div class="stat"><div class="stat-num">741</div><div class="stat-lbl">실종 신고 (15개월)</div></div>
+  <div class="stat"><div class="stat-num">14.17</div><div class="stat-lbl">종로 발생률 (per 10k, 1위)</div></div>
+</div>
+</div>
+
+<!-- ─────────── 1. 파이프라인 ─────────── -->
+<div id="pipeline" class="section">
+<h2>📐 1. 분석 파이프라인</h2>
+<p>전체 25만 격자에서 정책 개입 우선 행정동까지 — 4단계 funnel.</p>
+<div class="card">
+  <h3>분석 흐름 (보고서 도입부 / PPT 슬라이드 3-4)</h3>
+  <p><span class="pill">Step 0</span> 50m 격자 → <span class="pill">Step 1</span> XGBoost risk_score → <span class="pill pill-yellow">Step 2</span> LISA HH/HL → <span class="pill pill-red">Step 3</span> HDBSCAN 환경 분류 → <span class="pill pill-red">Step 4</span> 정책 개입 TOP 15</p>
+  <img src="../data/processed/report_viz/cluster/01_pipeline_funnel.png" alt="파이프라인 깔때기">
+</div>
+</div>
+
+<!-- ─────────── 2. 클러스터 분석 (핵심) ─────────── -->
+<div id="cluster" class="section">
+<h2>🧬 2. LISA + HDBSCAN 클러스터 분석 <span class="pill pill-red">CORE</span></h2>
+<p>공간적 위험 형태(LISA)와 물리적 특성(HDBSCAN)을 결합한 핵심 분석.</p>
+
+<div class="row">
+  <div class="card">
+    <h3>2-1. LISA × HDBSCAN 교차표</h3>
+    <p>HH/HL 격자가 어떤 환경 군집에 속하는지 매트릭스.</p>
+    <img src="../data/processed/report_viz/cluster/02_lisa_hdbscan_crosstab.png" alt="교차표">
+  </div>
+  <div class="card">
+    <h3>2-2. 군집별 환경 프로필 히트맵</h3>
+    <p>상위 12 군집의 핵심 feature 정규화 비교 (진할수록 높음).</p>
+    <img src="../data/processed/report_viz/cluster/03_hdbscan_profile_heatmap.png" alt="군집 프로필">
+  </div>
+</div>
+
+<div class="card">
+  <h3>2-3. 상위 6개 군집 Radar Chart ⭐</h3>
+  <p>각 군집의 환경 페르소나 — 도심 상권형 / 골목 미로형 / 경사·언덕형 / 인구 밀집형 / 복합형.</p>
+  <img src="../data/processed/report_viz/cluster/04_top_clusters_radar.png" alt="Radar">
+</div>
+
+<h3>📋 군집 자동 명명 결과 (5가지 위험 유형)</h3>
+<table style="width:100%; border-collapse: collapse; font-size:13px;">
+<thead><tr style="background:#34495e; color:white;">
+<th style="padding:8px;">군집 ID</th><th>n</th><th>자동 별명</th><th>Top Feature 1</th><th>Top Feature 2</th></tr></thead>
+<tbody>
+<tr><td style="padding:8px;text-align:center;">5</td><td style="text-align:center;">5,760</td><td><span class="pill pill-blue">도심 상권형</span></td><td>인프라</td><td>상점</td></tr>
+<tr style="background:#fafbfc;"><td style="padding:8px;text-align:center;">23</td><td style="text-align:center;">1,276</td><td><span class="pill pill-yellow">골목 미로형</span></td><td>교차로</td><td>도로복잡도</td></tr>
+<tr><td style="padding:8px;text-align:center;">3</td><td style="text-align:center;">969</td><td><span class="pill pill-yellow">경사·언덕형</span></td><td>경사도</td><td>위험도</td></tr>
+<tr style="background:#fafbfc;"><td style="padding:8px;text-align:center;">18, 16, 21, 42</td><td style="text-align:center;">2,486</td><td><span class="pill pill-red">인구 밀집·인프라 소외형</span></td><td>65+ 인구</td><td>교차로</td></tr>
+<tr><td style="padding:8px;text-align:center;">4</td><td style="text-align:center;">1,545</td><td><span class="pill">복합형</span></td><td>막다른길</td><td>위험도</td></tr>
+</tbody>
+</table>
+</div>
+
+<!-- ─────────── 3. 위험 지도 ─────────── -->
+<div id="map" class="section">
+<h2>🗺️ 3. 위험 격자 지도</h2>
+<p>HH/HL 격자 + TOP 5 행정동 표시. 인터랙티브에서 호버 시 격자별 상세 정보.</p>
+
+<div class="card">
+  <h3>3-1. 정적 지도 (PPT 슬라이드용)</h3>
+  <img src="../data/processed/report_viz/cluster/06_final_target_map.png" alt="최종 타겟 지도">
+</div>
+
+<div class="card">
+  <h3>3-2. 인터랙티브 지도 (호버: 군집 별명·위험도)</h3>
+  <iframe src="../data/processed/report_viz/cluster/06_final_target_map.html" height="700"></iframe>
+</div>
+
+<div class="card">
+  <h3>3-3. 클러스터 분석 통합 대시보드</h3>
+  <p>위 모든 클러스터 시각화를 한 페이지에 묶음.</p>
+  <iframe src="../data/processed/report_viz/cluster/HH_HL_cluster_dashboard.html" height="900"></iframe>
+</div>
+</div>
+
+<!-- ─────────── 4. 정책 우선순위 ─────────── -->
+<div id="policy" class="section">
+<h2>🚨 4. 정책 개입 우선 행정동 TOP 15 <span class="pill pill-red">CORE</span></h2>
+<p>격자 수 기준 정렬. 군집 유형별로 다른 정책 개입 권장.</p>
+
+<div class="card">
+  <h3>4-1. TOP 15 행정동 표</h3>
+  <img src="../data/processed/report_viz/cluster/05_top15_dong_table.png" alt="TOP 15 표">
+</div>
+
+<h3>📋 군집 유형 → 정책 매핑</h3>
+<table style="width:100%; border-collapse: collapse; font-size:13px;">
+<thead><tr style="background:#34495e; color:white;">
+<th style="padding:8px;">군집 유형</th><th>환경 특징</th><th>정책 개입</th><th>예상 예산</th></tr></thead>
+<tbody>
+<tr><td style="padding:8px;"><b>물리적 고립형</b></td><td>막다른길·경사도 ↑</td><td>치매 안심 유도선, 스마트 가로등, 배회 감지 CCTV</td><td>동당 5억원</td></tr>
+<tr style="background:#fafbfc;"><td style="padding:8px;"><b>인구 밀집·인프라 소외형</b></td><td>65+ 인구 ↑, 인프라 ↓</td><td>찾아가는 치매안심센터 버스, 치매 파수꾼 (배달원·우체부)</td><td>동당 1.5억원</td></tr>
+<tr><td style="padding:8px;"><b>도심 상권형</b></td><td>인프라·상점 ↑</td><td>상가 협력 안전망, AI CCTV, 보호구역 표지</td><td>동당 3억원</td></tr>
+<tr style="background:#fafbfc;"><td style="padding:8px;"><b>골목 미로형</b></td><td>교차로·도로복잡도 ↑</td><td>보행자 안내 표지, 교차로 GPS 신호 보강</td><td>동당 2억원</td></tr>
+<tr><td style="padding:8px;"><b>경사·언덕형</b></td><td>경사도 ↑</td><td>안전 손잡이 설치, 비상벨, 응급대응 동선</td><td>동당 1억원</td></tr>
+</tbody>
+</table>
+</div>
+
+<!-- ─────────── 5. 종로구 Case Study ─────────── -->
+<div id="case" class="section">
+<h2>🔍 5. 종로구 Case Study</h2>
+<p>발생률 1위 (14.17/10k, 평균의 4배). 도심 4구(종로·중구·용산·서대문) 비교.</p>
+
+<div class="row">
+  <div class="card">
+    <h3>5-1. 도심 4구 비교</h3>
+    <p>인구 보정 후 종로가 압도적 1위.</p>
+    <img src="../data/processed/report_viz/05_jongno_central4_comparison.png" alt="도심 4구 비교">
+  </div>
+  <div class="card">
+    <h3>5-2. 종로구 격자 zoom (정적)</h3>
+    <p>인사동·익선동 일대 격자별 위험도.</p>
+    <img src="../data/processed/report_viz/08_jongno_zoom.png" alt="종로구 zoom">
+  </div>
+</div>
+
+<div class="card">
+  <h3>5-3. 종로구 인터랙티브 (호버 시 상세)</h3>
+  <iframe src="../data/processed/report_viz/dashboard/02_jongno_zoom.html" height="700"></iframe>
+</div>
+
+<div class="card">
+  <h3>5-4. 도심 4구 Radar 비교</h3>
+  <iframe src="../data/processed/report_viz/dashboard/04_central4_radar.html" height="660"></iframe>
+</div>
+</div>
+
+<!-- ─────────── 6. 자치구 EDA ─────────── -->
+<div id="raw-eda" class="section">
+<h2>📈 6. 자치구별 EDA</h2>
+<p>건수 vs 발생률 vs 위험도 — 인구 보정의 중요성.</p>
+
+<div class="card">
+  <h3>6-1. 자치구 3패널 비교 (건수 / 발생률 / 위험도)</h3>
+  <img src="../data/processed/report_viz/01_gu_3panel_comparison.png" alt="자치구 3패널">
+</div>
+
+<div class="row">
+  <div class="card">
+    <h3>6-2. 자치구 × Feature 히트맵</h3>
+    <img src="../data/processed/report_viz/09_gu_feature_heatmap.png" alt="자치구 히트맵">
+  </div>
+  <div class="card">
+    <h3>6-3. 위험도 ↔ 발생률 산점도</h3>
+    <img src="../data/processed/report_viz/10_gu_risk_vs_rate.png" alt="산점도">
+  </div>
+</div>
+
+<div class="row">
+  <div class="card">
+    <h3>6-4. 위험도 ↔ 실종 추정</h3>
+    <img src="../data/processed/report_viz/02_risk_vs_missing_scatter.png" alt="산점도2">
+  </div>
+  <div class="card">
+    <h3>6-5. PCA 변수 기여도</h3>
+    <img src="../data/processed/report_viz/03_pca_feature_contribution.png" alt="PCA">
+  </div>
+</div>
+
+<div class="card">
+  <h3>6-6. 16변수 상관 매트릭스 (실종추정 + 위험도 포함)</h3>
+  <img src="../data/processed/report_viz/04_correlation_matrix.png" alt="상관">
+</div>
+
+<div class="card">
+  <h3>6-7. 자치구별 위험도 분포 (Box plot)</h3>
+  <img src="../data/processed/report_viz/06_gu_risk_boxplot.png" alt="Box plot">
+</div>
+
+<div class="card">
+  <h3>6-8. 서울 전체 위험 격자 지도</h3>
+  <img src="../data/processed/report_viz/07_seoul_risk_map.png" alt="서울 지도">
+</div>
+</div>
+
+<!-- ─────────── footer ─────────── -->
+<footer>
+  서울시 데이터 분석 경진대회 · 2026 · 50m grid spatial analysis<br>
+  <a href="https://github.com/hyeminhassomething/seoul-dementia-discovery-model">GitHub Repository</a>
+  · <a href="../index.html">v1 대시보드 (이전 버전)</a>
+  · 분석 코드: <code>code/29~31_*.py</code>
+</footer>
+
+</div>
+</body>
+</html>

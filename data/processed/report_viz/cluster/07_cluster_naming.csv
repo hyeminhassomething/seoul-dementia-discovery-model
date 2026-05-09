@@ -1,0 +1,13 @@
+﻿cluster_id,n_grids,auto_name,top_feature_1,top_feature_2,top_feature_1_ko,top_feature_2_ko
+5,5760,도심 상권형,INFRASTRUCTURE,STORE,인프라,상점
+1,1851,도심 상권형,INFRASTRUCTURE,STORE,인프라,상점
+4,1545,복합형,deadend_count,risk_score,막다른길,위험도
+23,1276,골목 미로형,intersection_count,road_complexity_raw,교차로,도로복잡도
+3,969,경사·언덕형,slope,risk_score,경사도,위험도
+43,847,도심 상권형,INFRASTRUCTURE,intersection_count,인프라,교차로
+18,812,인구 밀집·인프라 소외형,pop_65plus_per_grid,intersection_count,65+ 인구,교차로
+16,746,인구 밀집·인프라 소외형,pop_65plus_per_grid,risk_score,65+ 인구,위험도
+35,617,도심 상권형,INFRASTRUCTURE,STORE,인프라,상점
+21,571,인구 밀집·인프라 소외형,pop_65plus_per_grid,intersection_count,65+ 인구,교차로
+22,558,골목 미로형,intersection_count,road_complexity_raw,교차로,도로복잡도
+42,555,인구 밀집·인프라 소외형,pop_65plus_per_grid,intersection_count,65+ 인구,교차로

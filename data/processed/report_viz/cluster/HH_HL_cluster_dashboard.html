@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="UTF-8">
+<title>HH/HL 클러스터 분석 대시보드</title>
+<style>
+  body { font-family: -apple-system, "Apple SD Gothic Neo", sans-serif;
+          margin: 0; background: #f4f5f7; color: #2c3e50; }
+  header { background: linear-gradient(135deg, #c0392b 0%, #7d2c1e 100%);
+            color: white; padding: 32px 24px; }
+  header h1 { margin: 0 0 6px; font-size: 26px; }
+  header p { margin: 0; opacity: 0.92; }
+  .container { max-width: 1280px; margin: 0 auto; padding: 24px; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 14px; margin-bottom: 20px; }
+  .stat { background: white; padding: 18px; border-radius: 10px;
+           box-shadow: 0 4px 12px rgba(0,0,0,0.08); text-align: center; }
+  .stat-num { font-size: 28px; font-weight: bold; color: #c0392b; }
+  .stat-lbl { font-size: 11px; color: #7f8c8d; margin-top: 6px; }
+  .card { background: white; padding: 20px; margin-bottom: 16px;
+           border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
+  .card h2 { margin: 0 0 10px; color: #34495e; font-size: 17px; }
+  .card img { width: 100%; border-radius: 6px; border: 1px solid #eee; }
+  iframe { width: 100%; border: none; border-radius: 6px; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 1000px) { .row { grid-template-columns: 1fr; } }
+</style></head>
+<body>
+<header>
+  <h1>🎯 HH/HL 클러스터 분석 대시보드</h1>
+  <p>LISA 공간 자기상관 + HDBSCAN 환경 분류 → 정책 우선순위 도출</p>
+</header>
+<div class="container">
+  <div class="stats">
+    <div class="stat"><div class="stat-num">53,390</div><div class="stat-lbl">분석 격자</div></div>
+    <div class="stat"><div class="stat-num">52,298</div><div class="stat-lbl">HH (광역 위험)</div></div>
+    <div class="stat"><div class="stat-num">1,092</div><div class="stat-lbl">HL (사각지대)</div></div>
+    <div class="stat"><div class="stat-num">38</div><div class="stat-lbl">HDBSCAN 군집</div></div>
+    <div class="stat"><div class="stat-num">12</div><div class="stat-lbl">유효 상위 군집</div></div>
+  </div>
+  <div class="card"><h2>📐 1. 분석 파이프라인</h2>
+    <img src="01_pipeline_funnel.png"></div>
+  <div class="card"><h2>🗺️ 2. 최종 타겟 인터랙티브 지도</h2>
+    <iframe src="06_final_target_map.html" height="720"></iframe></div>
+  <div class="row">
+    <div class="card"><h2>📊 3. LISA × HDBSCAN 교차표</h2>
+      <img src="02_lisa_hdbscan_crosstab.png"></div>
+    <div class="card"><h2>🎨 4. 군집 프로필 히트맵</h2>
+      <img src="03_hdbscan_profile_heatmap.png"></div>
+  </div>
+  <div class="card"><h2>🎯 5. 상위 6 군집 환경 Radar</h2>
+    <img src="04_top_clusters_radar.png"></div>
+  <div class="card"><h2>🚨 6. 정책 개입 우선 행정동 TOP 15</h2>
+    <img src="05_top15_dong_table.png"></div>
+</div>
+</body></html>

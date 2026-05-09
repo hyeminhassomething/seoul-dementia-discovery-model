@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="UTF-8">
+<title>치매 노인 실종 분석 대시보드 — 서울 50m 격자</title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, "Apple SD Gothic Neo", sans-serif; margin: 0;
+         background: #f4f5f7; color: #2c3e50; }
+  header { background: linear-gradient(135deg, #c0392b 0%, #e67e22 100%);
+           color: white; padding: 36px 28px; }
+  header h1 { margin: 0 0 8px; font-size: 28px; }
+  header p { margin: 0; opacity: 0.92; }
+  .container { max-width: 1300px; margin: 0 auto; padding: 24px; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+           gap: 14px; margin: -32px 0 20px; }
+  .stat { background: white; padding: 18px; border-radius: 10px;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.08); text-align: center; }
+  .stat-num { font-size: 30px; font-weight: bold; color: #c0392b; }
+  .stat-lbl { font-size: 12px; color: #7f8c8d; margin-top: 6px; }
+  .card { background: white; padding: 24px; margin-bottom: 18px;
+          border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
+  .card h2 { margin: 0 0 12px; color: #34495e; font-size: 18px; }
+  .card p { color: #5a6c7d; font-size: 13px; margin-bottom: 12px; }
+  .frame { width: 100%; border: 1px solid #e8ecef; border-radius: 6px; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  @media (max-width: 1000px) { .row { grid-template-columns: 1fr; } }
+  footer { text-align: center; padding: 24px; color: #95a5a6; font-size: 12px; }
+  a { color: #3498db; text-decoration: none; }
+  .pill { display: inline-block; padding: 3px 10px; border-radius: 12px;
+          background: #ecf0f1; font-size: 11px; margin-right: 4px; }
+</style></head>
+<body>
+<header>
+  <h1>🧠 치매 노인 실종 분석 대시보드</h1>
+  <p>서울 50m 격자 단위 분석 · PCA 위험도 + 공간 자기상관 + 자치구 비교</p>
+</header>
+<div class="container">
+  <div class="stats">
+    <div class="stat"><div class="stat-num">120,821</div><div class="stat-lbl">분석 격자 (50m × 50m)</div></div>
+    <div class="stat"><div class="stat-num">741</div><div class="stat-lbl">실종 신고 (15개월)</div></div>
+    <div class="stat"><div class="stat-num">14.17</div><div class="stat-lbl">종로구 발생률 / 10k (1위)</div></div>
+    <div class="stat"><div class="stat-num">192만</div><div class="stat-lbl">서울 65+ 인구</div></div>
+    <div class="stat"><div class="stat-num">14</div><div class="stat-lbl">PCA feature</div></div>
+  </div>
+
+  <div class="card">
+    <h2>📍 1. 서울 전체 위험도 격자 지도</h2>
+    <p>40,000 격자 샘플의 PCA 위험도 점수. <span class="pill">호버: 격자별 상세</span> 빨강: 고위험.</p>
+    <iframe src="01_seoul_risk_map.html" class="frame" height="780"></iframe>
+  </div>
+
+  <div class="card">
+    <h2>🔍 2. 종로구 zoom — 격자별 환경 정보</h2>
+    <p>발생률 1위 종로구 격자별 위험도. 호버 시 행정동·교차로·CCTV·치매환자 수 확인 가능.</p>
+    <iframe src="02_jongno_zoom.html" class="frame" height="780"></iframe>
+  </div>
+
+  <div class="row">
+    <div class="card">
+      <h2>📊 3. 자치구 3패널 비교</h2>
+      <p>절대 건수 vs 발생률 vs PCA 위험도. 인구 보정 시 종로·중구·용산이 상위.</p>
+      <iframe src="03_gu_3panel.html" class="frame" height="780"></iframe>
+    </div>
+    <div class="card">
+      <h2>🎯 4. 도심 4구 Radar</h2>
+      <p>종로·중구·용산·서대문 환경 프로필. 종로가 인프라·도로복잡도에서 두드러짐.</p>
+      <iframe src="04_central4_radar.html" class="frame" height="680"></iframe>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="card">
+      <h2>🔗 5. 상관 매트릭스</h2>
+      <p>16개 변수 상관계수. 도로 인프라 변수 간 강한 양의 상관 확인.</p>
+      <iframe src="05_correlation_heatmap.html" class="frame" height="750"></iframe>
+    </div>
+    <div class="card">
+      <h2>📈 6. PCA 변수 기여도</h2>
+      <p>위험도 점수에 각 변수가 기여하는 비율 (%).</p>
+      <iframe src="06_pca_contribution.html" class="frame" height="630"></iframe>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📉 7. 위험도 분포</h2>
+    <p>전체 격자 분포 + 자치구별 box plot.</p>
+    <iframe src="07_risk_distribution.html" class="frame" height="630"></iframe>
+  </div>
+
+  <div class="card">
+    <h2>🎯 8. 위험도 Top 100 격자 — 정책 우선 대상</h2>
+    <p>모델이 식별한 가장 위험한 100개 격자. 발견·정비 우선순위.</p>
+    <iframe src="08_top_grids_table.html" class="frame" height="930"></iframe>
+  </div>
+</div>
+<footer>
+  서울시 데이터 분석 경진대회 · 2026 · 50m grid spatial analysis
+  · <a href="https://github.com/hyeminhassomething/seoul-dementia-discovery-model">GitHub</a>
+</footer>
+</body></html>

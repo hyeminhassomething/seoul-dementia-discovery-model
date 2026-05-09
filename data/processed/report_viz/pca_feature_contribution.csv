@@ -1,0 +1,15 @@
+﻿feature,raw,weight_pct
+휴식지 (200m),rest_count_within_200m,6.017025643781855
+road_complexity_raw,road_complexity_raw,6.289228600959991
+facility_count_within_200m,facility_count_within_200m,6.380771671482638
+치매 환자 (추정),추정치매환자수_총합,6.612845177193663
+유동인구,POPULATION,6.901415879003618
+공원 (200m),has_park_within_200m,6.955606041838081
+facility_count_in_cell,facility_count_in_cell,7.067841116508422
+intersection_count,intersection_count,7.1664276800969455
+인프라,INFRASTRUCTURE,7.310580061307006
+막다른 길,deadend_count,7.680427908598107
+상점,STORE,7.852880002038177
+주거지역,is_residential,7.856794038715602
+경사도,slope,7.931161492272533
+rest_count_in_cell,rest_count_in_cell,7.9769946862033665
