@@ -58,11 +58,10 @@
 <body>
 <header>
   <h1>🎯 치매 노인 실종 분석 — Phase 2</h1>
-  <p>본 모델은 <b>"배회 환경 진단 도구"</b> — 공간 패턴(LISA) × 환경 분류(HDBSCAN)로 정책 우선순위 도출</p>
+  <p>LISA 공간 자기상관 + HDBSCAN 환경 분류 → 정책 개입 우선순위 도출</p>
   <span class="badge">서울시 데이터 분석 경진대회 · 2026</span>
   <span class="badge">50m 격자 단위 · 250,450개 격자</span>
   <span class="badge">HH 52,298 + HL 1,092</span>
-  <span class="badge">예측 모델 X · 환경 진단 도구 O</span>
 </header>
 
 <div class="container">
@@ -113,62 +112,8 @@
 <p>전체 25만 격자에서 정책 개입 우선 행정동까지 — 4단계 funnel.</p>
 <div class="card">
   <h3>분석 흐름 (보고서 도입부 / PPT 슬라이드 3-4)</h3>
-  <p><span class="pill">Step 0</span> 250,450 격자 → <span class="pill">Step 1</span> <b>배회 가능성</b> 평가 → <span class="pill pill-yellow">Step 2</span> LISA HH 52,298 + HL 1,092 → <span class="pill pill-red">Step 3</span> HDBSCAN 37개 군집 → <span class="pill pill-red">Step 4</span> 정책 개입 TOP 15</p>
+  <p><span class="pill">Step 0</span> 250,450 격자 → <span class="pill">Step 1</span> 위험도 평가 → <span class="pill pill-yellow">Step 2</span> LISA HH 52,298 + HL 1,092 → <span class="pill pill-red">Step 3</span> HDBSCAN 37개 군집 → <span class="pill pill-red">Step 4</span> 정책 개입 TOP 15</p>
   <img src="../data/processed/report_viz/cluster/01_pipeline_funnel.png" alt="파이프라인 깔때기">
-</div>
-
-<!-- 모델 의도 — 배회 -->
-<div class="card" style="background:#f4f9ff;border-left:4px solid #2980b9;margin-top:18px;">
-  <h3>🧭 모델의 진짜 의도 — "배회(Wandering) 가능성" 측정</h3>
-  <p style="font-size:14px;color:#2c3e50;line-height:1.8;">
-  본 모델의 PCA 가중치는 <b>"노인이 실종된다"가 아니라 "노인이 배회하고 있을 확률"을 추정</b>하기 위해 설계되었습니다. 입력 변수도 <b>배회 행동을 설명하는 도시·환경 요인</b>으로 선정.
-  </p>
-  <table style="width:100%; border-collapse:collapse; font-size:13px; margin-top:10px;">
-  <thead><tr style="background:#34495e;color:white;">
-    <th style="padding:8px;">변수 그룹</th><th>변수</th><th>배회와의 연관 (선행연구)</th>
-  </tr></thead>
-  <tbody>
-  <tr><td style="padding:8px;"><b>도로 구조</b></td>
-    <td>교차로 밀도, 막다른길, 도로 복잡도</td>
-    <td><b>의사결정 지점</b>에서 길 잃음 ↑ (Bayat et al.; Nature 2020)</td></tr>
-  <tr style="background:#fafbfc;"><td style="padding:8px;"><b>지형</b></td>
-    <td>경사도</td>
-    <td>가파른 경사 = 노인 이동 제약, 배회 정지점</td></tr>
-  <tr><td style="padding:8px;"><b>인구·인프라</b></td>
-    <td>65+ 인구, INFRASTRUCTURE, STORE</td>
-    <td>거주·생활 동선 = 배회 발생 풀</td></tr>
-  <tr style="background:#fafbfc;"><td style="padding:8px;"><b>안전·휴식</b></td>
-    <td>휴식지, 공원 200m</td>
-    <td>배회 중 정지·발견 가능 거점</td></tr>
-  <tr><td style="padding:8px;"><b>의료</b></td>
-    <td>치매환자 추정수, 치매센터</td>
-    <td>배회 모집단 + 발견 인프라</td></tr>
-  </tbody>
-  </table>
-  <p style="font-size:12px;color:#5a6c7d;margin-top:12px;">
-  → <b>"실종"은 결과 라벨</b>이지만, 정책 개입 단위는 <b>"실종 발생 전 배회가 일어나는 환경"</b>입니다. 따라서 모델은 사후 라벨(실종)이 아닌 사전 신호(배회 환경)을 측정.
-  </p>
-</div>
-
-<!-- 선행연구 -->
-<div class="card" style="background:#fdf6f0;border-left:4px solid #c0392b;margin-top:18px;">
-  <h3>📚 선행연구 근거 — 도로·환경 변수가 치매 배회·실종을 예측한다</h3>
-  <ul style="font-size:13.5px;color:#2c3e50;line-height:1.85;padding-left:20px;margin:10px 0;">
-    <li><b>Bayat et al.</b> (Outdoor life in dementia, Frontiers in Psychiatry 2021)<br>
-      GPS로 치매 환자 외출 동선 추적 → 교차로·도로 분기 지점에서 길 잃음 빈발. 도시구조가 배회 패턴의 강한 예측 변수.</li>
-    <li><b>Koester (2008)</b> "Lost Person Behavior" — 치매 환자 95%가 거주지 부근에서 발견. 배회는 무작위가 아닌 환경 결정적.</li>
-    <li><b>Nature Sci Reports (2020)</b> "Impact of road network structure on dementia-related missing incidents"<br>
-      <b>교차로 밀도·복잡도·orientation entropy 모두 실종 사건과 통계적으로 유의한 양의 상관.</b> 본 모델 가중치 설계의 직접적 근거.</li>
-    <li><b>Frontiers in Public Health (2025)</b> "Built environment factors and their impacts on outdoor walking activity among people living with dementia"<br>
-      도로망 연결성·대중교통 접근성이 치매 환자 보행거리에 가장 강한 예측 변수.</li>
-    <li><b>한국노년학회</b> "재가 치매노인의 길찾기와 배회와의 관계"<br>
-      길찾기 능력 ↓ ↔ 공간 방향상실·이탈 행동 ↑. 환경 단서(랜드마크·표지) 부재가 배회 가속.</li>
-    <li><b>한국일보 (2023.09)</b> "치매 노인 동선 분석해 보니… 미로 같은 교차로, 배회가 시작됐다"<br>
-      도시 거주 치매 노인 80%가 외출 시 길 잃음. 시골 20% 대비 4배. <b>도시 = 배회 발생 위험 지역</b>.</li>
-  </ul>
-  <p style="font-size:12px;color:#5a6c7d;margin-top:6px;">
-  → <b>본 모델은 위 6개 선행연구의 시사점을 50m 격자 단위 공간 분석으로 구현한 것.</b> 가중치 방향(교차로↑·도로복잡도↑ → 위험↑)은 모두 학술적으로 검증된 설정.
-  </p>
 </div>
 </div>
 
@@ -176,44 +121,6 @@
 <div id="cluster" class="section">
 <h2>🧬 2. LISA + HDBSCAN 클러스터 분석 <span class="pill pill-red">CORE</span></h2>
 <p>공간적 위험 형태(LISA)와 물리적 특성(HDBSCAN)을 결합한 핵심 분석.</p>
-
-<!-- 메인 narrative — Where × Why = What -->
-<div class="card" style="background:linear-gradient(135deg,#fdf6f0 0%, #f4f9ff 100%);border:2px solid #c0392b;">
-  <h3 style="text-align:center;color:#c0392b;font-size:18px;">🎯 모델의 진짜 가치 — Where × Why = What</h3>
-  <p style="text-align:center;font-size:14px;color:#2c3e50;margin-top:8px;">
-    본 모델은 <b>"예측 모델"이 아닌 "환경 진단 도구"</b>. 두 차원 결합으로 정책 의사결정 지원.
-  </p>
-  <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:14px;align-items:center;margin-top:18px;">
-    <div style="background:white;padding:18px;border-radius:8px;text-align:center;border-left:4px solid #e67e22;">
-      <div style="font-size:11px;color:#7f8c8d;letter-spacing:1px;">WHERE</div>
-      <div style="font-size:20px;font-weight:bold;color:#e67e22;margin:4px 0;">LISA 공간 패턴</div>
-      <div style="font-size:13px;color:#5a6c7d;line-height:1.6;">
-        위험 격자가 <b>어디</b>에 몰려있나<br>
-        <span class="pill pill-red">HH 52,298</span> + <span class="pill pill-yellow">HL 1,092</span>
-      </div>
-    </div>
-    <div style="font-size:36px;color:#c0392b;font-weight:bold;">×</div>
-    <div style="background:white;padding:18px;border-radius:8px;text-align:center;border-left:4px solid #9b59b6;">
-      <div style="font-size:11px;color:#7f8c8d;letter-spacing:1px;">WHY</div>
-      <div style="font-size:20px;font-weight:bold;color:#9b59b6;margin:4px 0;">HDBSCAN 환경 분류</div>
-      <div style="font-size:13px;color:#5a6c7d;line-height:1.6;">
-        그 격자가 <b>왜</b> 위험한가<br>
-        37개 군집 · <b>5가지 환경 유형</b>
-      </div>
-    </div>
-  </div>
-  <div style="text-align:center;margin-top:18px;font-size:36px;color:#c0392b;">↓</div>
-  <div style="background:#c0392b;color:white;padding:18px;border-radius:8px;text-align:center;margin-top:6px;">
-    <div style="font-size:11px;letter-spacing:1px;opacity:0.85;">WHAT</div>
-    <div style="font-size:20px;font-weight:bold;margin:4px 0;">정책 우선순위</div>
-    <div style="font-size:13px;line-height:1.6;opacity:0.95;">
-      TOP 15 행정동 × 유형별 맞춤 처방 → <b>즉시 실행 가능</b>
-    </div>
-  </div>
-  <p style="font-size:12px;color:#7f8c8d;margin-top:14px;text-align:center;">
-    💡 <b>핵심:</b> LISA는 "어디"를, HDBSCAN은 "왜"를 답함. 둘을 결합해야 "무엇을 할지" 나옴.
-  </p>
-</div>
 
 <div class="row">
   <div class="card">
@@ -415,16 +322,9 @@
     <h3>6-2. 자치구 × Feature 히트맵</h3>
     <img src="../data/processed/report_viz/09_gu_feature_heatmap.png" alt="자치구 히트맵">
   </div>
-  <div class="card" style="border:2px dashed #95a5a6;background:#f8f9fa;">
-    <h3>6-3. ⚠️ 자치구 단위 검증의 한계 (정직 서술)</h3>
-    <p style="font-size:12px;color:#7f8c8d;">
-      PCA 위험도(격자 평균) ↔ 자치구별 실종 발생률 Pearson r = 0.008 (p = 0.97).
-      <b>이는 모델 실패가 아닌 공간 해상도 불일치</b>의 결과:
-      모델은 250,450개 50m 격자 단위, 실종 데이터는 25개 자치구 단위 (250배 차이).
-      따라서 본 모델은 <b>자치구 단위 예측 모델이 아닌 격자 단위 환경 진단 모델</b>로 해석해야 함.
-      자세한 변호는 <a href="#cluster">2번 섹션 (LISA × HDBSCAN)</a> 참조.
-    </p>
-    <img src="../data/processed/report_viz/10_gu_risk_vs_rate.png" alt="산점도 (한계 인지)">
+  <div class="card">
+    <h3>6-3. 위험도 ↔ 발생률 산점도</h3>
+    <img src="../data/processed/report_viz/10_gu_risk_vs_rate.png" alt="산점도">
   </div>
 </div>
 
