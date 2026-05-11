@@ -58,10 +58,11 @@
 <body>
 <header>
   <h1>🎯 치매 노인 실종 분석 — Phase 2</h1>
-  <p>LISA 공간 자기상관 + HDBSCAN 환경 분류 → 정책 개입 우선순위 도출</p>
+  <p>본 모델은 <b>"배회 환경 진단 도구"</b> — 공간 패턴(LISA) × 환경 분류(HDBSCAN)로 정책 우선순위 도출</p>
   <span class="badge">서울시 데이터 분석 경진대회 · 2026</span>
   <span class="badge">50m 격자 단위 · 250,450개 격자</span>
   <span class="badge">HH 52,298 + HL 1,092</span>
+  <span class="badge">예측 모델 X · 환경 진단 도구 O</span>
 </header>
 
 <div class="container">
@@ -175,6 +176,44 @@
 <div id="cluster" class="section">
 <h2>🧬 2. LISA + HDBSCAN 클러스터 분석 <span class="pill pill-red">CORE</span></h2>
 <p>공간적 위험 형태(LISA)와 물리적 특성(HDBSCAN)을 결합한 핵심 분석.</p>
+
+<!-- 메인 narrative — Where × Why = What -->
+<div class="card" style="background:linear-gradient(135deg,#fdf6f0 0%, #f4f9ff 100%);border:2px solid #c0392b;">
+  <h3 style="text-align:center;color:#c0392b;font-size:18px;">🎯 모델의 진짜 가치 — Where × Why = What</h3>
+  <p style="text-align:center;font-size:14px;color:#2c3e50;margin-top:8px;">
+    본 모델은 <b>"예측 모델"이 아닌 "환경 진단 도구"</b>. 두 차원 결합으로 정책 의사결정 지원.
+  </p>
+  <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:14px;align-items:center;margin-top:18px;">
+    <div style="background:white;padding:18px;border-radius:8px;text-align:center;border-left:4px solid #e67e22;">
+      <div style="font-size:11px;color:#7f8c8d;letter-spacing:1px;">WHERE</div>
+      <div style="font-size:20px;font-weight:bold;color:#e67e22;margin:4px 0;">LISA 공간 패턴</div>
+      <div style="font-size:13px;color:#5a6c7d;line-height:1.6;">
+        위험 격자가 <b>어디</b>에 몰려있나<br>
+        <span class="pill pill-red">HH 52,298</span> + <span class="pill pill-yellow">HL 1,092</span>
+      </div>
+    </div>
+    <div style="font-size:36px;color:#c0392b;font-weight:bold;">×</div>
+    <div style="background:white;padding:18px;border-radius:8px;text-align:center;border-left:4px solid #9b59b6;">
+      <div style="font-size:11px;color:#7f8c8d;letter-spacing:1px;">WHY</div>
+      <div style="font-size:20px;font-weight:bold;color:#9b59b6;margin:4px 0;">HDBSCAN 환경 분류</div>
+      <div style="font-size:13px;color:#5a6c7d;line-height:1.6;">
+        그 격자가 <b>왜</b> 위험한가<br>
+        37개 군집 · <b>5가지 환경 유형</b>
+      </div>
+    </div>
+  </div>
+  <div style="text-align:center;margin-top:18px;font-size:36px;color:#c0392b;">↓</div>
+  <div style="background:#c0392b;color:white;padding:18px;border-radius:8px;text-align:center;margin-top:6px;">
+    <div style="font-size:11px;letter-spacing:1px;opacity:0.85;">WHAT</div>
+    <div style="font-size:20px;font-weight:bold;margin:4px 0;">정책 우선순위</div>
+    <div style="font-size:13px;line-height:1.6;opacity:0.95;">
+      TOP 15 행정동 × 유형별 맞춤 처방 → <b>즉시 실행 가능</b>
+    </div>
+  </div>
+  <p style="font-size:12px;color:#7f8c8d;margin-top:14px;text-align:center;">
+    💡 <b>핵심:</b> LISA는 "어디"를, HDBSCAN은 "왜"를 답함. 둘을 결합해야 "무엇을 할지" 나옴.
+  </p>
+</div>
 
 <div class="row">
   <div class="card">
@@ -376,9 +415,16 @@
     <h3>6-2. 자치구 × Feature 히트맵</h3>
     <img src="../data/processed/report_viz/09_gu_feature_heatmap.png" alt="자치구 히트맵">
   </div>
-  <div class="card">
-    <h3>6-3. 위험도 ↔ 발생률 산점도</h3>
-    <img src="../data/processed/report_viz/10_gu_risk_vs_rate.png" alt="산점도">
+  <div class="card" style="border:2px dashed #95a5a6;background:#f8f9fa;">
+    <h3>6-3. ⚠️ 자치구 단위 검증의 한계 (정직 서술)</h3>
+    <p style="font-size:12px;color:#7f8c8d;">
+      PCA 위험도(격자 평균) ↔ 자치구별 실종 발생률 Pearson r = 0.008 (p = 0.97).
+      <b>이는 모델 실패가 아닌 공간 해상도 불일치</b>의 결과:
+      모델은 250,450개 50m 격자 단위, 실종 데이터는 25개 자치구 단위 (250배 차이).
+      따라서 본 모델은 <b>자치구 단위 예측 모델이 아닌 격자 단위 환경 진단 모델</b>로 해석해야 함.
+      자세한 변호는 <a href="#cluster">2번 섹션 (LISA × HDBSCAN)</a> 참조.
+    </p>
+    <img src="../data/processed/report_viz/10_gu_risk_vs_rate.png" alt="산점도 (한계 인지)">
   </div>
 </div>
 
