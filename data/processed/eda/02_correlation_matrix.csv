@@ -1,0 +1,9 @@
+﻿,intersection_density_200m,road_complexity_200m,residential_score_200m,rest_count_within_200m,cctv_count_within_200m,facility_count_within_500m,pop_75plus_per_grid,discovery_probability
+intersection_density_200m,1.0,0.98,0.144,0.05,0.134,0.091,-0.007,0.925
+road_complexity_200m,0.98,1.0,0.166,0.066,0.13,0.093,-0.005,0.934
+residential_score_200m,0.144,0.166,1.0,0.235,0.095,0.204,0.122,0.345
+rest_count_within_200m,0.05,0.066,0.235,1.0,0.082,0.139,0.192,0.254
+cctv_count_within_200m,0.134,0.13,0.095,0.082,1.0,0.139,0.063,0.261
+facility_count_within_500m,0.091,0.093,0.204,0.139,0.139,1.0,0.253,0.201
+pop_75plus_per_grid,-0.007,-0.005,0.122,0.192,0.063,0.253,1.0,0.102
+discovery_probability,0.925,0.934,0.345,0.254,0.261,0.201,0.102,1.0
