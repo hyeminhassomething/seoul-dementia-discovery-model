@@ -297,8 +297,8 @@ fig.text(0.5, 0.96,
          '5가지 환경 유형 (노션 확정) — 각 유형별 다른 정책 처방',
          ha='center', fontsize=13, fontweight='bold', color=C_DARK)
 fig.text(0.05, 0.02,
-         '출처: 차성준 cuML LISA(Queen, p<0.05) × HDBSCAN(min_cluster_size=300) · '
-         '96 valid clusters → 5 페르소나 자동 명명 · 정책 단가는 노션 확정값',
+         '출처: LISA(Queen contiguity, p<0.05) × HDBSCAN(min_cluster_size=300) · '
+         '96 valid clusters → 5 페르소나 자동 명명 · 정책 단가는 확정값',
          fontsize=8, color=C_GREY)
 
 plt.savefig(OUT/'L6_crosstab_v3.png', dpi=200, bbox_inches='tight',
@@ -333,7 +333,7 @@ if DATA.exists():
     ax.set_aspect('equal')
     ax.set_xlabel('경도', fontsize=12, color=C_DARK)
     ax.set_ylabel('위도', fontsize=12, color=C_DARK)
-    ax.set_title('LISA 4-Cluster — 서울 전역 50m 격자 (차성준 cuML · Queen weight · p<0.05)',
+    ax.set_title('LISA 4-Cluster — 서울 전역 50m 격자 (Queen contiguity weight · p<0.05)',
                  fontsize=14, fontweight='bold', color=C_DARK, pad=12)
     leg = ax.legend(loc='upper left', fontsize=11, markerscale=8,
                     frameon=True, framealpha=0.92)
